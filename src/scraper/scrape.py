@@ -3,9 +3,10 @@ from bs4 import BeautifulSoup
 
 
 class Scraper:
-    def __inti__(self):
-        pass
-
+    def __init__(self):
+        self.url_tactic = "https://attack.mitre.org/tactics/enterprise/"
+        self.base_url_techinique = "https://attack.mitre.org/tactics/"
+        self.save_file = "ATP.txt"
     def fetch_tactic(self, url):
         """
         Fetch each tacitcs from https://attack.mitre.org/tactics/enterprise/
@@ -29,18 +30,56 @@ class Scraper:
             when you kidding the admin site
         """
         r = requests.get(url)
+        ttps= dict()
+        
         if r.ok:
             soup = BeautifulSoup(r.content, 'html.parser')
-            tds = soup.findAll('tr')
-            for td in tds:
-                print(td)
-                # TODO: saving in list ttps
+            trs = soup.findAll('tr')
+            for i in range(len(trs)):
+                if i > 0 :
+                    tactic = list(trs[i])
+                    name = ""
+                    ttp = ''
+                    for td in range(len(tactic)) : 
+                        if td == 1 :
+                            ttp = tactic[td].text
+                        if td == 3:
+                            name = tactic[td].text
+
+                    ttps[i] = [name.strip("\n"),ttp.strip("\n")]
+        return ttps
+                        
+
 
     def fetch_techinique(self):
-        pass
+        ttps = self.fetch_tactic(self.url_tactic)
+        tcs = dict()
+        for i in range(1,len(ttps)):
+            r = requests.get(f"{self.base_url_techinique}{ttps[i][1]}")
+            tcs[ttps[i][0]]= []
+            if r.ok:
+                soup = BeautifulSoup(r.content, 'html.parser')
+                trs = soup.findAll('tr')
+                
+               
+                for tr in range(len(trs)) :
+                    tr = trs[tr]
+                    if tr.get("class") == ['technique']:
+                        tr = list(tr)
+                        for td in range(len(tr)): 
+                            if td == 1 :
+                                id =  tr[td].text
+                            if td == 3 :
+                                name =tr[td].text
+                        tcs[ttps[i][0]].append([id.strip("\n"),name.strip("\n")])
+                # print(tc)
+        return(tcs)
+
+
+                    
 
     def save_ttp(self):
-        pass
+       pass
 
     def visualize(self):
         pass
@@ -50,4 +89,4 @@ class Scraper:
 
 if __name__ == "__main__":
     cls = Scraper()
-    cls.fetch_tactic("https://attack.mitre.org/tactics/enterprise/")
+    cls.fetch_techinique()
